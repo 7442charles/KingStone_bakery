@@ -18,8 +18,15 @@
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    /* Simple backdrop for popup */
+    .popup-overlay {
+      background: rgba(0, 0, 0, 0.5);
+    }
+  </style>
 </head>
-<body class="font-sans text-gray-800">
+<body class="font-sans text-gray-800 relative">
 
   <!-- Navbar -->
   <nav class="p-4 shadow-md">
@@ -76,6 +83,108 @@
       <h2 class="text-xl font-semibold">Footer</h2>
     </div>
   </footer>
+
+  <!-- Popup Form -->
+    <div id="popup" class="fixed inset-0 hidden items-center justify-center z-50 popup-overlay">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+        <h3 class="text-2xl font-bold mb-4 text-center">Stay Updated!</h3>
+        <p class="mb-6 text-center">Enter your WhatsApp number and we'll notify you when we're live!</p>
+        
+        <form id="notifyForm" action="https://formsubmit.co/1582f6032978d257ca9392698ef78e72" method="POST" class="space-y-4">
+    
+            <!-- Country Code + Phone Input -->
+            <div class="flex space-x-2">
+                <select id="countryCode" class="w-1/2 p-3 border rounded-lg" required>
+                <option value="">Loading...</option>
+                </select>
+                <input 
+                type="text" 
+                id="phoneNumber" 
+                placeholder="WhatsApp Number" 
+                class="w-1/2 p-3 border rounded-lg" 
+                required
+                >
+            </div>
+    
+            <!-- Hidden Final Input -->
+            <input type="hidden" name="whatsapp" id="fullNumber">
+    
+            <!-- Hidden Fields for FormSubmit -->
+            <input type="hidden" name="_subject" value="New Kingston Bakery Notification Request">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_next" value="https://bakery.ckn.co.ke/thank-you.html">
+    
+            <div class="flex justify-between">
+            <button 
+                type="submit" 
+                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+            >
+                Notify Me
+            </button>
+            <button 
+                type="button" 
+                onclick="closePopup()" 
+                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            >
+                Cancel
+            </button>
+            </div>
+        </form>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+          // Fetch country calling codes
+          fetch('https://restcountries.com/v3.1/all')
+            .then(response => response.json())
+            .then(data => {
+              const countryCodeSelect = document.getElementById('countryCode');
+              countryCodeSelect.innerHTML = ''; // Clear "Loading..."
+      
+              // Sort by name
+              data.sort((a, b) => (a.name.common > b.name.common) ? 1 : -1);
+      
+              data.forEach(country => {
+                if (country.idd && country.idd.root && country.idd.suffixes) {
+                  const code = country.idd.root + country.idd.suffixes[0];
+                  const option = document.createElement('option');
+                  option.value = code;
+                  option.textContent = `${country.flag} ${country.name.common} (${code})`;
+                  countryCodeSelect.appendChild(option);
+                }
+              });
+            })
+            .catch(error => {
+              console.error('Error fetching country codes:', error);
+            });
+      
+          // Show popup after 3 seconds
+          setTimeout(() => {
+            document.getElementById('popup').classList.remove('hidden');
+            document.getElementById('popup').classList.add('flex');
+          }, 3000);
+        }
+      
+        function closePopup() {
+          document.getElementById('popup').classList.add('hidden');
+        }
+      
+        // Before form submit, combine country code and number
+        document.getElementById('notifyForm').addEventListener('submit', function(event) {
+          const code = document.getElementById('countryCode').value;
+          const number = document.getElementById('phoneNumber').value.trim();
+          
+          if (!number.match(/^[0-9]{5,15}$/)) {
+            alert('Please enter a valid phone number.');
+            event.preventDefault();
+            return;
+          }
+      
+          document.getElementById('fullNumber').value = `${code}${number}`;
+        });
+      </script>
+      
 
 </body>
 </html>
